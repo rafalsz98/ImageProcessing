@@ -32,7 +32,7 @@ namespace ImageProcessing
                     processors.Regionprops();
                     break;
                 case 2:
-
+                    processors.KirschFiltration();
                     break;
                 case 3:
 
