@@ -175,11 +175,9 @@ namespace ImageProcessing
             }
         }
 
-        private double[,,] RotateMatrix(double[,] baseKernel,
-                                                     double degrees)
+        private double[,,] RotateMatrix(double[,] baseKernel, double degrees)
         {
-            double[,,] kernel = new double[(int)(360 / degrees),
-               baseKernel.GetLength(0), baseKernel.GetLength(1)];
+            double[,,] kernel = new double[(int)(360 / degrees), baseKernel.GetLength(0), baseKernel.GetLength(1)];
 
             int xOffset = baseKernel.GetLength(1) / 2;
             int yOffset = baseKernel.GetLength(0) / 2;
@@ -188,11 +186,9 @@ namespace ImageProcessing
             {
                 for (int x = 0; x < baseKernel.GetLength(1); x++)
                 {
-                    for (int compass = 0; compass <
-                        kernel.GetLength(0); compass++)
+                    for (int compass = 0; compass < kernel.GetLength(0); compass++)
                     {
-                        double radians = compass * degrees *
-                                         Math.PI / 180.0;
+                        double radians = compass * degrees * Math.PI / 180.0;
 
                         int resultX = (int)(Math.Round((x - xOffset) *
                                    Math.Cos(radians) - (y - yOffset) *
@@ -202,8 +198,7 @@ namespace ImageProcessing
                                    Math.Sin(radians) + (y - yOffset) *
                                    Math.Cos(radians)) + yOffset);
 
-                        kernel[compass, resultY, resultX] =
-                                                    baseKernel[y, x];
+                        kernel[compass, resultY, resultX] = baseKernel[y, x];
                     }
                 }
             }
@@ -213,111 +208,57 @@ namespace ImageProcessing
 
         private Bitmap ConvolutionFilter(Bitmap sourceBitmap, double[,,] filterMatrix)
         {
-            BitmapData sourceData = sourceBitmap.LockBits(new Rectangle(0, 0,
-                                     sourceBitmap.Width, sourceBitmap.Height),
-                                                       ImageLockMode.ReadOnly,
-                                                 PixelFormat.Format32bppArgb);
+            var result = new Bitmap(sourceBitmap);
+            int offset = filterMatrix.GetLength(1);
+            int offsetCenter = (offset - 1) / 2;
 
-            byte[] pixelBuffer = new byte[sourceData.Stride * sourceData.Height];
-            byte[] resultBuffer = new byte[sourceData.Stride * sourceData.Height];
-
-            Marshal.Copy(sourceData.Scan0, pixelBuffer, 0, pixelBuffer.Length);
-            sourceBitmap.UnlockBits(sourceData);
-
-            int filterWidth = filterMatrix.GetLength(1);
-
-            int filterOffset = (filterWidth - 1) / 2;
-
-            for (int offsetY = filterOffset; offsetY <
-                sourceBitmap.Height - filterOffset; offsetY++)
+            for (int y = 0; y < sourceBitmap.Height; y++)
             {
-                for (int offsetX = filterOffset; offsetX <
-                    sourceBitmap.Width - filterOffset; offsetX++)
+                for (int x = 0; x < sourceBitmap.Width; x++)
                 {
                     double blue = 0;
                     double green = 0;
                     double red = 0;
 
-                    int byteOffset = offsetY *
-                                 sourceData.Stride +
-                                 offsetX * 4;
-
-                    for (int compass = 0; compass <
-                         filterMatrix.GetLength(0); compass++)
+                    for (int compass = 0; compass < filterMatrix.GetLength(0); compass++)
                     {
+                        double blueCompass = .0;
+                        double greenCompass = .0;
+                        double redCompass = .0;
 
-                        double blueCompass = 0.0;
-                        double greenCompass = 0.0;
-                        double redCompass = 0.0;
-
-                        for (int filterY = -filterOffset;
-                            filterY <= filterOffset; filterY++)
+                        for (int yFilter = -offsetCenter; yFilter <= offsetCenter; yFilter++)
                         {
-                            for (int filterX = -filterOffset;
-                                filterX <= filterOffset; filterX++)
+                            for (int xFilter = -offsetCenter; xFilter <= offsetCenter; xFilter++)
                             {
+                                if (
+                                    x + xFilter < 0 || x + xFilter >= sourceBitmap.Width ||
+                                    y + yFilter < 0 || y + yFilter >= sourceBitmap.Height
+                                )
+                                {
+                                    continue;
+                                }
 
-
-                                int calcOffset = byteOffset +
-                                             (filterX * 4) +
-                                             (filterY * sourceData.Stride);
-
-
-                                blueCompass += pixelBuffer[calcOffset] *
-                                                filterMatrix[compass,
-                                                filterY + filterOffset,
-                                                filterX + filterOffset];
-
-                                greenCompass += pixelBuffer[calcOffset + 1] *
-                                                filterMatrix[compass,
-                                                filterY + filterOffset,
-                                                filterX + filterOffset];
-
-                                redCompass += pixelBuffer[calcOffset + 2] *
-                                                filterMatrix[compass,
-                                                filterY + filterOffset,
-                                                filterX + filterOffset];
+                                var color = sourceBitmap.GetPixel(x + xFilter, y + yFilter);
+                                var filterMultiplication = filterMatrix[compass, yFilter + offsetCenter, xFilter + offsetCenter];
+                                blueCompass += color.B * filterMultiplication;
+                                greenCompass += color.G * filterMultiplication;
+                                redCompass += color.R * filterMultiplication;
                             }
                         }
 
-                        blue = blueCompass > blue ? blueCompass : blue;
-                        green = greenCompass > green ? greenCompass : green;
-                        red = redCompass > red ? redCompass : red;
+                        blue = Math.Max(blue, blueCompass);
+                        green = Math.Max(green, greenCompass);
+                        red = Math.Max(red, redCompass);
                     }
 
-                    if (blue > 255)
-                    { blue = 255; }
-                    else if (blue < 0)
-                    { blue = 0; }
-
-                    if (green > 255)
-                    { green = 255; }
-                    else if (green < 0)
-                    { green = 0; }
-
-                    if (red > 255)
-                    { red = 255; }
-                    else if (red < 0)
-                    { red = 0; }
-
-                    resultBuffer[byteOffset] = (byte)blue;
-                    resultBuffer[byteOffset + 1] = (byte)green;
-                    resultBuffer[byteOffset + 2] = (byte)red;
-                    resultBuffer[byteOffset + 3] = 255;
+                    blue = Math.Min(Math.Max(0, blue), 255);
+                    green = Math.Min(Math.Max(0, green), 255);
+                    red = Math.Min(Math.Max(0, red), 255);
+                    result.SetPixel(x, y, Color.FromArgb((int)red, (int)green, (int)blue));
                 }
             }
 
-            Bitmap resultBitmap = new Bitmap(sourceBitmap.Width, sourceBitmap.Height);
-
-            BitmapData resultData = resultBitmap.LockBits(new Rectangle(0, 0,
-                                     resultBitmap.Width, resultBitmap.Height),
-                                                      ImageLockMode.WriteOnly,
-                                                 PixelFormat.Format32bppArgb);
-
-            Marshal.Copy(resultBuffer, 0, resultData.Scan0, resultBuffer.Length);
-            resultBitmap.UnlockBits(resultData);
-
-            return resultBitmap;
+            return result;
         }
 
         #endregion
@@ -328,6 +269,9 @@ namespace ImageProcessing
         {
             Console.WriteLine("Write output file name: ");
             var path = Console.ReadLine();
+
+            Console.WriteLine("Write radius of structural element (>= 1): ");
+            var radius = Convert.ToInt32(Console.ReadLine());
 
             var SE = new int[,]
             {
@@ -340,19 +284,19 @@ namespace ImageProcessing
             resultBitmap = ErodeDilate(resultBitmap, SE, MorphologyType.Dilation);
             resultBitmap.Save(path);
         }
-        
-        private Bitmap ErodeDilate(Bitmap inputBitmap, int[,] SE, MorphologyType method)
+
+        private Bitmap ErodeDilate(Bitmap sourceBitmap, int[,] SE, MorphologyType method)
         {
-            var result = new Bitmap(inputBitmap);
+            var result = new Bitmap(sourceBitmap);
 
             int offset = SE.GetLength(0);
             int offsetCenter = (offset - 1) / 2;
 
             int morphResetValue = (method == MorphologyType.Erosion ? 255 : 0);
 
-            for (int y = 0; y < inputBitmap.Height; y++)
+            for (int y = 0; y < sourceBitmap.Height; y++)
             {
-                for (int x = 0; x < inputBitmap.Width; x++)
+                for (int x = 0; x < sourceBitmap.Width; x++)
                 {
                     var newColor = morphResetValue;
 
@@ -362,16 +306,16 @@ namespace ImageProcessing
                         {
                             if (
                                 SE[ySE + offsetCenter, xSE + offsetCenter] != 1 ||
-                                x + xSE < 0 || x + xSE >= inputBitmap.Width ||
-                                y + ySE < 0 || y + ySE >= inputBitmap.Height
+                                x + xSE < 0 || x + xSE >= sourceBitmap.Width ||
+                                y + ySE < 0 || y + ySE >= sourceBitmap.Height
                             )
                             {
                                 continue;
                             }
 
                             newColor = method == MorphologyType.Erosion
-                                ? Math.Min(newColor, inputBitmap.GetPixel(x + xSE, y + ySE).R)
-                                : Math.Max(newColor, inputBitmap.GetPixel(x + xSE, y + ySE).R);
+                                ? Math.Min(newColor, sourceBitmap.GetPixel(x + xSE, y + ySE).R)
+                                : Math.Max(newColor, sourceBitmap.GetPixel(x + xSE, y + ySE).R);
                         }
                     }
 
