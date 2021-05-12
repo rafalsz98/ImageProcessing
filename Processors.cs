@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Runtime.InteropServices;
 
 namespace ImageProcessing
 {
@@ -263,7 +261,7 @@ namespace ImageProcessing
 
         #endregion
 
-        #region
+        #region Open with circle
 
         public void OpenWithCircle()
         {
