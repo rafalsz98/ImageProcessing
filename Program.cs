@@ -35,7 +35,7 @@ namespace ImageProcessing
                     processors.KirschFiltration();
                     break;
                 case 3:
-
+                    processors.OpenWithCircle();
                     break;
                 case 4:
 

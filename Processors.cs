@@ -107,6 +107,8 @@ namespace ImageProcessing
 
         #endregion
 
+        #region Kirsch filter
+
         public void KirschFiltration()
         {
             Console.WriteLine("Write output file name: ");
@@ -173,7 +175,7 @@ namespace ImageProcessing
             }
         }
 
-        public double[,,] RotateMatrix(double[,] baseKernel,
+        private double[,,] RotateMatrix(double[,] baseKernel,
                                                      double degrees)
         {
             double[,,] kernel = new double[(int)(360 / degrees),
@@ -317,5 +319,71 @@ namespace ImageProcessing
 
             return resultBitmap;
         }
+
+        #endregion
+
+        #region
+
+        public void OpenWithCircle()
+        {
+            Console.WriteLine("Write output file name: ");
+            var path = Console.ReadLine();
+
+            var SE = new int[,]
+            {
+                {0, 1, 0 },
+                {1, 1, 1 },
+                {0, 1, 0 }
+            };
+
+            var resultBitmap = ErodeDilate(inputBitmap, SE, MorphologyType.Erosion);
+            resultBitmap = ErodeDilate(resultBitmap, SE, MorphologyType.Dilation);
+            resultBitmap.Save(path);
+        }
+        
+        private Bitmap ErodeDilate(Bitmap inputBitmap, int[,] SE, MorphologyType method)
+        {
+            var result = new Bitmap(inputBitmap);
+
+            int offset = SE.GetLength(0);
+            int offsetCenter = (offset - 1) / 2;
+
+            int morphResetValue = (method == MorphologyType.Erosion ? 255 : 0);
+
+            for (int y = 0; y < inputBitmap.Height; y++)
+            {
+                for (int x = 0; x < inputBitmap.Width; x++)
+                {
+                    var newColor = morphResetValue;
+
+                    for (int ySE = -offsetCenter; ySE <= offsetCenter; ySE++)
+                    {
+                        for (int xSE = -offsetCenter; xSE <= offsetCenter; xSE++)
+                        {
+                            if (
+                                SE[ySE + offsetCenter, xSE + offsetCenter] != 1 ||
+                                x + xSE < 0 || x + xSE >= inputBitmap.Width ||
+                                y + ySE < 0 || y + ySE >= inputBitmap.Height
+                            )
+                            {
+                                continue;
+                            }
+
+                            newColor = method == MorphologyType.Erosion
+                                ? Math.Min(newColor, inputBitmap.GetPixel(x + xSE, y + ySE).R)
+                                : Math.Max(newColor, inputBitmap.GetPixel(x + xSE, y + ySE).R);
+                        }
+                    }
+
+                    result.SetPixel(x, y, Color.FromArgb(newColor, newColor, newColor));
+                }
+            }
+
+            return result;
+        }
+
+        private enum MorphologyType { Erosion, Dilation }
+
+        #endregion
     }
 }
