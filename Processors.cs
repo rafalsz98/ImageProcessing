@@ -344,7 +344,64 @@ namespace ImageProcessing
 
         public void Labeling()
         {
+            Console.WriteLine("Write output txt file name: ");
+            var path = Console.ReadLine();
 
+            Console.WriteLine("Choose neighbourhood value (4 or 8)?");
+            var choice = Convert.ToInt32(Console.ReadLine());
+            int[,] directions = choice == 4
+                ? new int[,] { { 1, 0, -1, 0 }, { 0, 1, 0, -1 } }
+                : new int[,] { { -1, -1, -1, 0, 0, 0, 1, 1, 1 }, { -1, 0, 1, -1, 0, 1, -1, 0, 1 } };
+
+
+            var labels = new int[inputBitmap.Height, inputBitmap.Width];
+            var count = 1;
+
+            for (int y = 0; y < inputBitmap.Height; y++)
+            {
+                for (int x = 0; x < inputBitmap.Width; x++)
+                {
+                    if (labels[y, x] == 0 && inputBitmap.GetPixel(x, y).R == 255)
+                    {
+                        Dfs(x, y, count, directions, labels);
+                        count++;
+                    }
+                }
+            }
+
+            using (var writer = File.CreateText(path))
+            {
+                for (int y = 0; y < inputBitmap.Height; y++)
+                {
+                    for (int x = 0; x < inputBitmap.Width; x++)
+                    {
+                        writer.Write(labels[y, x]);
+                        writer.Write("\t");
+                    }
+                    writer.Write("\n");
+                }
+            }
+
+            
+        }
+
+        private void Dfs(int x, int y, int currentLabel, int[,] directions, int[,] labels)
+        {
+            if (
+                x < 0 || x >= inputBitmap.Width ||
+                y < 0 || y >= inputBitmap.Height ||
+                labels[y, x] != 0 || inputBitmap.GetPixel(x, y).R != 255
+            )
+            {
+                return;
+            }
+
+            labels[y, x] = currentLabel;
+
+            for (int direction = 0; direction < directions.GetLength(1); direction++)
+            {
+                Dfs(x + directions[0, direction], y + directions[1, direction], currentLabel, directions, labels);
+            }
         }
 
         #endregion

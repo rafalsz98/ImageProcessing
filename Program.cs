@@ -38,7 +38,7 @@ namespace ImageProcessing
                     processors.OpenWithCircle();
                     break;
                 case 4:
-
+                    processors.Labeling();
                     break;
             }
         }
