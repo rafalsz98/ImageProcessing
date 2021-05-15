@@ -228,15 +228,27 @@ namespace ImageProcessing
                         {
                             for (int xFilter = -offsetCenter; xFilter <= offsetCenter; xFilter++)
                             {
-                                if (
-                                    x + xFilter < 0 || x + xFilter >= sourceBitmap.Width ||
-                                    y + yFilter < 0 || y + yFilter >= sourceBitmap.Height
-                                )
+                                int pixelX = x + xFilter, 
+                                    pixelY = y + yFilter;
+                                if (pixelX < 0)
                                 {
-                                    continue;
+                                    pixelX = sourceBitmap.Width + pixelX;
+                                }
+                                else if (pixelX >= sourceBitmap.Width)
+                                {
+                                    pixelX -= sourceBitmap.Width;
                                 }
 
-                                var color = sourceBitmap.GetPixel(x + xFilter, y + yFilter);
+                                if (pixelY < 0)
+                                {
+                                    pixelY = sourceBitmap.Height + pixelY;
+                                }
+                                else if (pixelY >= sourceBitmap.Height)
+                                {
+                                    pixelY -= sourceBitmap.Height;
+                                }
+
+                                var color = sourceBitmap.GetPixel(pixelX, pixelY);
                                 var filterMultiplication = filterMatrix[compass, yFilter + offsetCenter, xFilter + offsetCenter];
                                 blueCompass += color.B * filterMultiplication;
                                 greenCompass += color.G * filterMultiplication;
