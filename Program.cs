@@ -22,8 +22,8 @@ namespace ImageProcessing
             Console.WriteLine("1. Regionprops");
             Console.WriteLine("2. Kirsch filtration (Spacial filtration)");
             Console.WriteLine("3. Closing with circular element (Morphologic)");
-            Console.WriteLine("4. Wypukle otoczne (Logical)");
-            Console.WriteLine("4. Exit\n");
+            Console.WriteLine("4. Labeling (Logical)");
+            Console.WriteLine("5. Exit\n");
 
             var choice = Convert.ToInt32(Console.ReadLine());
             switch (choice)

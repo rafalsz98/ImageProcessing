@@ -33,8 +33,8 @@ namespace ImageProcessing
             public double LeftTopY { get; set; } = -1;
             public double RightBottomX { get; set; } = -1;
             public double RightBottomY { get; set; } = -1;
-            public double Width => RightBottomX - LeftTopX;
-            public double Height => RightBottomY - LeftTopY;
+            public double Width => RightBottomX - LeftTopX + 1;
+            public double Height => RightBottomY - LeftTopY + 1;
         }
 
         public void Regionprops()
@@ -56,19 +56,19 @@ namespace ImageProcessing
                 for (int y = 0; y < inputBitmap.Height; y++)
                 {
                     var id = inputBitmap.GetPixel(x, y).R;
-                    centroids[id].X += x;
-                    centroids[id].Y += y;
+                    centroids[id].X += x + 1;
+                    centroids[id].Y += y + 1;
                     centroids[id].Count++;
 
                     boundingBoxes[id].LeftTopX =
-                        (boundingBoxes[id].LeftTopX == -1 || x < boundingBoxes[id].LeftTopX) ? x : boundingBoxes[id].LeftTopX;
+                        (boundingBoxes[id].LeftTopX == -1 || x < boundingBoxes[id].LeftTopX) ? x + 1 : boundingBoxes[id].LeftTopX;
                     boundingBoxes[id].LeftTopY =
-                        (boundingBoxes[id].LeftTopY == -1 || y < boundingBoxes[id].LeftTopY) ? y : boundingBoxes[id].LeftTopY;
+                        (boundingBoxes[id].LeftTopY == -1 || y < boundingBoxes[id].LeftTopY) ? y + 1 : boundingBoxes[id].LeftTopY;
 
                     boundingBoxes[id].RightBottomX =
-                        (boundingBoxes[id].RightBottomX == -1 || x > boundingBoxes[id].RightBottomX) ? x : boundingBoxes[id].RightBottomX;
+                        (boundingBoxes[id].RightBottomX == -1 || x > boundingBoxes[id].RightBottomX) ? x + 1 : boundingBoxes[id].RightBottomX;
                     boundingBoxes[id].RightBottomY =
-                        (boundingBoxes[id].RightBottomY == -1 || y > boundingBoxes[id].RightBottomY) ? y : boundingBoxes[id].RightBottomY;
+                        (boundingBoxes[id].RightBottomY == -1 || y > boundingBoxes[id].RightBottomY) ? y + 1 : boundingBoxes[id].RightBottomY;
 
                 }
             }
@@ -91,7 +91,7 @@ namespace ImageProcessing
 
             using (var writer = File.CreateText(path))
             {
-                writer.WriteLine("ID\tCentroid\tBounding Box\t");
+                writer.WriteLine("ID\tCentroid\tBounding Box\tEquivalent diameter");
                 for (int i = 0; i < 256; i++)
                 {
                     writer.WriteLine(
@@ -337,6 +337,15 @@ namespace ImageProcessing
         }
 
         private enum MorphologyType { Erosion, Dilation }
+
+        #endregion
+
+        #region Labeling
+
+        public void Labeling()
+        {
+
+        }
 
         #endregion
     }
