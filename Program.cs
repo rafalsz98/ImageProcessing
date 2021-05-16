@@ -19,9 +19,9 @@ namespace ImageProcessing
 
             Console.WriteLine("*Succesfully loaded image*\n");
             Console.WriteLine("Choose processing method: ");
-            Console.WriteLine("1. Regionprops");
-            Console.WriteLine("2. Kirsch filtration (Spacial filtration)");
-            Console.WriteLine("3. Closing with circular element (Morphologic)");
+            Console.WriteLine("1. Regionprops (only monochrome)");
+            Console.WriteLine("2. Kirsch filtration (RGB or mono)");
+            Console.WriteLine("3. Opening with circular element (Mono and logical)");
             Console.WriteLine("4. Labeling (Logical)");
             Console.WriteLine("5. Exit\n");
 

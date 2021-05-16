@@ -283,12 +283,22 @@ namespace ImageProcessing
             Console.WriteLine("Write radius of structural element (>= 1): ");
             var radius = Convert.ToInt32(Console.ReadLine());
 
-            var SE = new int[,]
+            var seSize = radius * 2 + 1;
+            var SE = new int[seSize, seSize];
+
+            var radius2 = radius * radius;
+            var center = (seSize - 1) / 2;
+            for (int y = 0; y < seSize; y++)
             {
-                {0, 1, 0 },
-                {1, 1, 1 },
-                {0, 1, 0 }
-            };
+                for (int x = 0; x < seSize; x++)
+                {
+                    var dist = (x - center) * (x - center) + (y - center) * (y - center);
+                    if (dist <= radius2)
+                    {
+                        SE[y, x] = 1;
+                    }
+                }
+            }
 
             var resultBitmap = ErodeDilate(inputBitmap, SE, MorphologyType.Erosion);
             resultBitmap = ErodeDilate(resultBitmap, SE, MorphologyType.Dilation);
